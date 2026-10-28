@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+build/
+dist/
+*.spec
+*.egg-info/
+.venv-build/
+data/
+.hallmark/*
+!.hallmark/log.json

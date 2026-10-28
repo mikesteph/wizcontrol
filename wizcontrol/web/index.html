@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Control your WiZ lights on the local network: groups, brightness, white temperature, color, scenes and effects.">
+  <title>WiZ Control</title>
+  <link rel="icon" type="image/png" href="/static/icon.png">
+  <link rel="preload" href="/static/fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/static/fonts/gloock-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.3 7.5a7.5 7.5 0 1 0 11.4 0"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M14.5 5.5l4 4L9 19H5v-4z"/><path d="M12.5 7.5l4 4"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/></symbol>
+  <symbol id="i-warning" viewBox="0 0 24 24"><path d="M12 4 3 20h18z"/><path d="M12 10v4M12 17v.5"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1.5"/></symbol>
+</svg>
+<div id="app">
+  <header class="topbar">
+    <button id="menuBtn" type="button" class="icon-btn mobile-only" aria-label="Show groups and lights"><svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg></button>
+    <div class="brand">WiZ Control</div>
+    <div class="top-actions">
+      <span id="conn" class="conn" role="status"></span>
+      <button id="allOffBtn" type="button" class="btn ghost" title="Turn every light off" aria-label="All off"><svg class="icon" aria-hidden="true"><use href="#i-power"/></svg><span class="hide-sm">All off</span></button>
+      <button id="discoverBtn" type="button" class="btn" aria-label="Discover lights"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg><span class="hide-sm">Discover</span></button>
+      <button id="addLightBtn" type="button" class="btn" aria-label="Add lights"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg><span class="hide-sm">Add lights</span></button>
+      <button id="settingsBtn" type="button" class="icon-btn" aria-label="Settings" title="Settings"><svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg></button>
+    </div>
+  </header>
+
+  <aside id="sidebar" class="sidebar">
+    <section>
+      <div class="side-head"><h3>Groups</h3><button id="newGroupBtn" type="button" class="mini"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>New group</button></div>
+      <ul id="groupList" class="side-list"></ul>
+    </section>
+    <section>
+      <div class="side-head"><h3>Lights</h3><span id="lightCount" class="muted small"></span></div>
+      <ul id="lightList" class="side-list"></ul>
+    </section>
+  </aside>
+  <div id="scrim" class="scrim"></div>
+
+  <main id="main">
+    <div id="welcome" class="welcome hidden">
+      <div class="welcome-card">
+        <h1>Let’s find your lights</h1>
+        <p class="muted">Type or paste the IP addresses of your WiZ lights (one per line, optionally followed by a name), or let the app scan your network.</p>
+        <label for="welcomeIps" class="visually-hidden">IP addresses</label>
+        <textarea id="welcomeIps" rows="4" placeholder="192.168.1.20 Desk lamp&#10;192.168.1.21 Ceiling&#10;192.168.1.22"></textarea>
+        <div class="row">
+          <button id="welcomeAdd" type="button" class="btn primary">Add these lights</button>
+          <button id="welcomeDiscover" type="button" class="btn"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>Scan my network</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="controlArea">
+      <div class="target-head">
+        <div class="target-title">
+          <h1 id="targetName">All Lights</h1>
+          <div id="targetSub" class="muted"></div>
+        </div>
+        <div class="power">
+          <button id="onBtn" type="button" class="power-btn on">On</button>
+          <button id="offBtn" type="button" class="power-btn off">Off</button>
+        </div>
+      </div>
+
+      <div id="runningBanner" class="banner hidden" role="status">
+        <span id="runningText"></span>
+        <button id="stopBtn" type="button" class="btn small-btn"><svg class="icon" aria-hidden="true"><use href="#i-stop"/></svg>Stop</button>
+      </div>
+
+      <nav class="tabs" id="tabs" aria-label="Sections">
+        <button type="button" data-tab="controls" class="active">Controls</button>
+        <button type="button" data-tab="effects">Effects</button>
+        <button type="button" data-tab="scenes">WiZ Scenes</button>
+        <button type="button" data-tab="palettes">Palettes</button>
+      </nav>
+
+      <!-- Controls -->
+      <section class="tab" id="tab-controls">
+        <div class="cards">
+          <div class="card">
+            <div class="card-head"><h2><label for="bri">Brightness</label></h2></div>
+            <span id="briVal" class="figure big-figure">100%</span>
+            <input type="range" id="bri" min="10" max="100" value="100" class="slider bri-slider">
+          </div>
+          <div class="card">
+            <div class="card-head"><h2><label for="temp">White temperature</label></h2></div>
+            <span id="tempVal" class="figure big-figure">4000&nbsp;K</span>
+            <input type="range" id="temp" min="2200" max="6500" step="100" value="4000" class="slider temp-slider">
+            <div class="chips">
+              <button type="button" class="chip" data-temp="2200">Candle</button>
+              <button type="button" class="chip" data-temp="2700">Warm</button>
+              <button type="button" class="chip" data-temp="3500">Soft</button>
+              <button type="button" class="chip" data-temp="4200">Neutral</button>
+              <button type="button" class="chip" data-temp="5000">Daylight</button>
+              <button type="button" class="chip" data-temp="6500">Cool</button>
+            </div>
+          </div>
+          <div class="card wide">
+            <div class="card-head"><h2>Color</h2>
+              <label class="color-native" title="Pick any color"><span class="visually-hidden">Pick any color</span><input type="color" id="colorPick" value="#ff0080"><span id="colorSwatch"></span></label>
+            </div>
+            <label class="lbl" for="hue">Hue</label>
+            <div class="hue-wrap"><div id="hueTrack" class="hue-track" aria-hidden="true"></div>
+              <input type="range" id="hue" min="0" max="359" value="320" class="slider hue-slider"></div>
+            <label class="lbl" for="sat">Saturation</label>
+            <input type="range" id="sat" min="0" max="100" value="100" class="slider sat-slider">
+            <div id="swatches" class="swatches"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Effects -->
+      <section class="tab hidden" id="tab-effects">
+        <div class="fx-sticky"><div class="fx-controls">
+          <div class="fx-ctrl">
+            <div class="card-head"><label for="fxSpeed">Speed</label><span id="fxSpeedVal" class="val">×1.0</span></div>
+            <input type="range" id="fxSpeed" min="0" max="1000" value="500" class="slider">
+          </div>
+          <div class="fx-ctrl">
+            <div class="card-head"><label for="fxBri">Brightness</label><span id="fxBriVal" class="val">100%</span></div>
+            <input type="range" id="fxBri" min="5" max="100" value="100" class="slider bri-slider">
+          </div>
+          <div class="fx-ctrl small-ctrl">
+            <label for="fxColor">Color</label>
+            <label class="color-native"><input type="color" id="fxColor" value="#ffffff"><span id="fxColorSwatch"></span></label>
+          </div>
+          <div class="fx-ctrl">
+            <label for="fxPalette">Palette</label>
+            <select id="fxPalette"></select>
+            <div id="fxPalettePreview" class="pal-strip"></div>
+          </div>
+        </div></div>
+        <div class="fx-filter">
+          <div id="fxCats" class="chips"></div>
+          <label for="fxSearch" class="visually-hidden">Search effects</label>
+          <input id="fxSearch" type="search" placeholder="Search effects…">
+        </div>
+        <div id="fxGrid" class="fx-grid"></div>
+      </section>
+
+      <!-- WiZ scenes -->
+      <section class="tab hidden" id="tab-scenes">
+        <div class="scene-speed">
+          <div class="card-head"><h2>Built-in WiZ scenes</h2></div>
+          <p class="muted small">Run on the bulb’s own firmware: smooth and network-free.</p>
+          <div class="card-head speed-head"><label for="sceneSpeed" class="muted small">Scene speed</label><span id="sceneSpeedVal" class="val">100</span></div>
+          <input type="range" id="sceneSpeed" min="10" max="200" value="100" class="slider">
+        </div>
+        <div id="sceneGrid" class="scene-grid"></div>
+      </section>
+
+      <!-- Palettes -->
+      <section class="tab hidden" id="tab-palettes">
+        <div class="row between wrap gap">
+          <p class="muted">Palettes drive the palette effects. Click a palette to use it, or quick-start an effect.</p>
+          <button id="newPaletteBtn" type="button" class="btn"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>New palette</button>
+        </div>
+        <div id="paletteGrid" class="palette-grid"></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-card">
+    <div class="modal-head"><h2 id="modalTitle"></h2><button type="button" class="icon-btn" id="modalClose" aria-label="Close"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div>
+    <div id="modalBody"></div>
+    <div id="modalFoot" class="modal-foot"></div>
+  </div>
+</div>
+<div id="toasts" class="toasts" aria-live="polite"></div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

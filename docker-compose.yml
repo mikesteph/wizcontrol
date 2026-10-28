@@ -1,0 +1,14 @@
+services:
+  wizcontrol:
+    build: .
+    image: wizcontrol:latest
+    container_name: wizcontrol
+    # Host networking is required: the bulbs talk UDP on port 38899, and
+    # discovery uses LAN broadcasts that a bridged container can't send or receive.
+    network_mode: host
+    environment:
+      - WIZ_PORT=8765   # change if 8765 is taken on the server
+      - TZ=Etc/UTC
+    volumes:
+      - ./data:/data    # lights, groups, palettes, settings and the log
+    restart: unless-stopped

@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt pyinstaller
+      - name: Install native window support (Windows)
+        if: runner.os == 'Windows'
+        run: pip install -r requirements-desktop.txt
+      - name: Test effects
+        run: python -m tests.test_effects
+      - name: Build executable
+        shell: bash
+        run: |
+          SEP=':'; [ "$RUNNER_OS" = "Windows" ] && SEP=';'
+          pyinstaller --noconfirm --onefile --windowed --name WizControl \
+            --icon assets/icon.ico --add-data "wizcontrol/web${SEP}wizcontrol/web" launcher.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WizControl-${{ runner.os }}
+          path: dist/*

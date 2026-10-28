@@ -1,0 +1,29 @@
+[
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "kiln",
+  "axes": "dark/high-contrast-serif/warm",
+  "hero": "none (app)",
+  "nav": "kept: top bar over a groups and lights sidebar",
+  "footer": "none (app)",
+  "imagery": "none: colour samples of the lights",
+  "photos": [],
+  "entry": "wizcontrol/web/index.html",
+  "fingerprint": "app-shell/sidebar/figures-over-tracks/sampled-strips/well-grids/dialogs",
+  "sections": [
+   "controls: brightness and temperature figures over tracks, colour below",
+   "effects: sticky parameter well over a grid of sampled strips",
+   "scenes: sampled strips",
+   "palettes: sampled strips with quick-start pills"
+  ],
+  "signature": "the colour temperature as a Gloock figure over the heat ramp",
+  "waived": [
+   "16"
+  ],
+  "prompt": "redesign the WiZ Control app UI",
+  "date": "2026-10-28"
+ }
+]

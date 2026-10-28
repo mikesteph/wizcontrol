@@ -1,0 +1,14 @@
+.git
+.github
+.hallmark
+.venv
+.venv-build
+build
+dist
+data
+assets
+tests
+tools
+**/__pycache__
+*.pyc
+*.spec

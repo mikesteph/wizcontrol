@@ -1,0 +1,3 @@
+# Optional: native app window. Without it the app opens in an Edge/Chrome app window instead.
+# Linux also needs GTK WebKit or Qt bindings for this (see README).
+pywebview>=5.0

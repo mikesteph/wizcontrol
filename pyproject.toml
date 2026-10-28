@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wizcontrol"
+version = "1.0.0"
+description = "Local desktop controller for WiZ smart lights - groups, effects, strobes and palettes"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["aiohttp>=3.9"]
+
+[project.optional-dependencies]
+desktop = ["pywebview>=5.0"]
+
+[project.scripts]
+wizcontrol = "wizcontrol.app:main"
+
+[tool.setuptools]
+packages = ["wizcontrol"]
+
+[tool.setuptools.package-data]
+wizcontrol = ["web/*"]
